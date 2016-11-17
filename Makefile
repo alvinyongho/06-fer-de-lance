@@ -32,7 +32,8 @@ tests/output/%.vresult: tests/output/%.run
 	valgrind $< > $@
 
 tests/output/%.run: tests/output/%.o c-bits/main.c
-	clang -g -m32 -o $@ c-bits/main.c $<
+	clang -g -m32 -mstackrealign -o $@ c-bits/main.c $<
+
 
 tests/output/%.o: tests/output/%.s
 	nasm -f $(FORMAT) -o $@ $<
