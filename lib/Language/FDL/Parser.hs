@@ -82,7 +82,7 @@ keywords =
   , "true"    , "false"
   , "let"     , "in"
   , "add1"    , "sub1"  , "isNum"   , "isBool",   "print"
-  , "def"     , "lambda"
+  , "def"     , "lambda", "λ"
   ]
 
 -- | `identifier` parses identifiers: lower-case alphabets followed by alphas or digits
@@ -218,7 +218,7 @@ ifExpr = withSpan' $ do
 
 lamExpr :: Parser Bare
 lamExpr = withSpan' $ do
-  rWord "lambda"
+  try (rWord "lambda") <|> rWord "λ"
   xs    <- parens (sepBy binder comma) <* colon
   e     <- expr
   return (Lam xs e)
