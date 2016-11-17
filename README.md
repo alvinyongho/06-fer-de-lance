@@ -12,7 +12,7 @@ egg-eater-like language with anonymous, first-class functions.
 ### Syntax
 
 Fer-de-lance starts with the egg-eater and
-has two significant syntactic changes.  
+has two significant syntactic changes.
 
 1. First, it _removes_ the notion of function
    declarations as a separate step in the
@@ -21,7 +21,8 @@ has two significant syntactic changes.
 2. Second, it _adds_ the notion of a `lambda`
    expression for defining anonymous functions,
    and allows expressions rather than just
-   strings (names) in function position:
+   strings (names) in function position.
+   The unicode character λ can also be used instead.
 
 3. Third, to allow for recursive functions, it _adds_
    the notion of a _named_ function binders.
@@ -135,11 +136,11 @@ The memory layout of the `lambda` would be:
 ----------------------------------
 ```
 
-* There is one argument (`z`), so `1` is stored for arity.  
+* There is one argument (`z`), so `1` is stored for arity.
 
 * There are two free variables—`x` and `y`—so the corresponding
 values are stored in contiguous addresses (`20` to represent `10`
-and `24` to represent 12).  
+and `24` to represent 12).
 
 If the function stored three variables instead of two, then
 padding would have been needed to ensure the 8-byte-alignment.
@@ -165,12 +166,12 @@ Hence, the value layout is now:
 
 An important part of saving function values is figuring out
 the set of **free variables** that need to be stored, and
-storing them on the heap.  
+storing them on the heap.
 
 Our compiler needs to generate code to store all of the
 _free_ variables in a function – all the variables that
 are used but not defined by an argument or let binding
-inside the function.  
+inside the function.
 
 So, for example, `x` is free and `y` is not in:
 
@@ -211,13 +212,13 @@ freeVars :: Expr a -> [Id]
 ```
 
 You may need to write one or more helper functions
-for `freeVars`, that keep track of an environment.  
+for `freeVars`, that keep track of an environment.
 Then `freevars` can be used when compiling `Lam`
 to fetch the values from the surrounding environment,
-and store them on the heap. 
+and store them on the heap.
 
 **HINT:** You really don't want the result of `freeVars` to contain
-duplicates; thus it may be valuable to use the 
+duplicates; thus it may be valuable to use the
 [`Data.Set` library](http://hackage.haskell.org/package/containers-0.5.8.1/docs/Data-Set.html)
 
 In the example of heap layout above, the `freeVars`
@@ -253,11 +254,11 @@ each time the function is called, they can be accessed.
 In this assignment we'll treat the stored variables
 as if they were a special kind of **local variable**,
 and reallocate space for them on the stack at the
-beginning of each function call.  
+beginning of each function call.
 
 So each function body will have an additional part
 of the prelude that **restores the variables onto the stack**,
-and their uses will be compiled just as local variables are.  
+and their uses will be compiled just as local variables are.
 This lets us re-use much of our infrastructure of stack
 offsets and the environment (`stackVar`).
 
@@ -282,11 +283,11 @@ appropriate values from the heap into the stack, and
 using the environment to make variable references
 look at the right locations on the stack.
 
-The first point requires a little more design work.  
+The first point requires a little more design work.
 
 If we try to fill in the body of `temp_closure_1`
 above, we immediately run into the issue of where we
-should find the stored values in memory.  
+should find the stored values in memory.
 
 We'd like some way to, say, move the address of the
 function value into `eax` so we could start copying
@@ -304,7 +305,7 @@ temp_closure_1:
   ... and so on ...
 ```
 
-But how do we get access to the function value?  
+But how do we get access to the function value?
 The list of instructions for `temp_closure_1`
 may be run for many different instantiations
 of the function, so they can't all look in
@@ -317,7 +318,7 @@ to **pass along the function value** when
 calling a function.  That is, we will
 `push` one extra time after pushing all
 the arguments, and add on the function
-value itself from the caller.  
+value itself from the caller.
 
 So, for example, in call like:
 
