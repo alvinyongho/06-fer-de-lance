@@ -24,6 +24,7 @@ tests sc = testGroup "Tests"
   , testGroup "Cobra"           (cobraTests   sc)
   , testGroup "Diamond"         (diamondTests sc)
   , testGroup "Egg-eater"       (eggTests     sc)
+  , testGroup "Fer-de-lance"    (fdlTests     sc)
   , testGroup "Dynamic-Errors"  (dynamicTests sc)
   , testGroup "Static-Errors"   (staticTests  sc)
   , testGroup "Your-Tests"      (yourTests    sc)
