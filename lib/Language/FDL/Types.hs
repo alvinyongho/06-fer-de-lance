@@ -16,6 +16,7 @@ module Language.FDL.Types
   -- * Aliases for various identifiers
   , Id
   , Tag
+  , Arity
 
   -- * Abstract syntax of the Adder language
   , Bind (..), Expr (..), AnfExpr,   ImmExpr
@@ -73,6 +74,7 @@ import           Language.FDL.UX
 data Reg
   = EAX
   | EBX
+  | ECX
   | ESP
   | EBP
   | ESI
@@ -141,6 +143,7 @@ type Id = Text
 
 -- | `Tag` are used to tag each `If`
 type Tag = Int
+type Arity = Int
 
 -- | `Prim1` are unary operations
 data Prim1
@@ -176,6 +179,16 @@ data Expr a
   | Lam               [Bind a]   !(Expr a) a
   | Fun     !(Bind a) [Bind a]   !(Expr a) a
     deriving (Show, Functor)
+
+
+-- data Function expr a = Function
+--   { fName  :: !(Maybe (Bind a))
+--   , fArgs  :: [Bind a]
+--   , fBody  :: !(expr a)
+--   , fAnnot :: a
+--   , fEnv   :: !Env
+--   } deriving (Show)
+
 
 data Bind a
   = Bind !Id a
