@@ -140,8 +140,7 @@ getExpr = withSpan' (GetItem <$> funExpr <*> brackets expr)
   -- getItem eV eI = GetItem eV eI (stretch [eV, eI])
 
 appExpr :: Parser Bare
--- appExpr = App <$> funExpr <*> exprs <*> pure ()
-appExpr  = apps <$> funExpr <*> sepBy1 exprs sc
+appExpr  = apps <$> funExpr <*> sepBy exprs sc
   where
     apps = L.foldl' (\e es -> App e es (stretch (e:es)))
 
