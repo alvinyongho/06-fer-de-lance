@@ -131,8 +131,12 @@ expr0 =  try primExpr
      <|> try constExpr
      <|> idExpr
 
-exprs :: Parser [Bare]
-exprs = parens (sepBy1 expr comma)
+
+exprs0 :: Parser [Bare]
+exprs0 = parens (sepBy expr comma)
+
+exprs1 :: Parser [Bare]
+exprs1 = parens (sepBy1 expr comma)
 
 getExpr :: Parser Bare
 getExpr = withSpan' (GetItem <$> funExpr <*> brackets expr)
@@ -140,8 +144,7 @@ getExpr = withSpan' (GetItem <$> funExpr <*> brackets expr)
   -- getItem eV eI = GetItem eV eI (stretch [eV, eI])
 
 appExpr :: Parser Bare
--- appExpr = App <$> funExpr <*> exprs <*> pure ()
-appExpr  = apps <$> funExpr <*> sepBy1 exprs sc
+appExpr  = apps <$> funExpr <*> sepBy1 exprs0 sc
   where
     apps = L.foldl' (\e es -> App e es (stretch (e:es)))
 
@@ -149,7 +152,7 @@ funExpr :: Parser Bare
 funExpr = try idExpr <|> tupExpr
 
 tupExpr :: Parser Bare
-tupExpr = withSpan' (mkTuple <$> exprs)
+tupExpr = withSpan' (mkTuple <$> exprs1)
 
 mkTuple :: [Bare] -> SourceSpan -> Bare
 mkTuple [e] _ = e
