@@ -150,5 +150,14 @@ fdlTests sc =
   ]
 
 yourTests sc =
-  [ -- Your tests go here
+  [ mkTest sc "pair-2"        File      (rLines ["(10, 20)"])
+  , mkTest sc "pair"          File      (rLines ["(10, (10, 20))"])
+  , mkTest sc "tuple-01d"     File      (rLines ["10", "20", "30", "60"])
+  , mkTest sc "tuple-test"    File      (rLines["(1, 2, 3, (4, 5))"])
+  , mkTest sc "tuple-03d"     File      (rLines ["(30, 20, 10)"])
+  , mkTest sc "err-tuple-00"  File      (Left "Error: tuple index too large.")
+  , mkTest sc "err-tuple-01"  File      (Left "Error: tuple index too small.")
+  , mkTest sc "err-tuple-02"  File      (Left "Error: tuple index too large.")
+  , mkTest sc "err-tuple-03"  File      (Left "Error: tuple index too small.")
+  , mkTest sc "fac0"          File      (rLines ["5040"])
   ]
