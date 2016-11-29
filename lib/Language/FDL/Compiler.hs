@@ -97,10 +97,10 @@ freeVars e =
     go (Number _ l)      = S.empty
     go (Boolean _ l)     = S.empty
 
-    -- go (Prim1 o v l)     = S.unions[ go v ]
-    -- go (Prim2 o v1 v2 l) = S.unions[ go v1, go v2 ]
-    -- go (Tuple es _)      = S.unions(map go es)
-    -- go (GetItem vE vI _) = S.unions[ go vE ]
+    go (Prim1 o v l)     = S.unions[ go v ]
+    go (Prim2 o v1 v2 l) = S.unions[ go v1, go v2 ]
+    go (Tuple es _)      = S.unions(map go es)
+    go (GetItem vE vI _) = S.unions[ go vE, go vI ]
 
     go (If e e1 e2 l)    = S.unions[ go e, go e1, go e2 ]
     go (App e es l)      = S.unions(map go (e:es))
@@ -108,7 +108,7 @@ freeVars e =
     go (Lam xs e l)      = S.difference (go e) (S.fromList (map bindId xs))
     go (Fun f xs e l)    = S.difference (go e) (S.fromList (map bindId (f:xs)))    -- add the function id to the list of other free vars
 
-    go _ = S.empty
+    -- go _ = S.empty
 --  ++ go (addsEnv xs vEnv) e
 --  ++ go (addsEnv (f:xs) vEnv) e
 
@@ -180,7 +180,7 @@ compileEnv env (Fun f xs e l)   =     IJmp   funEnd             -- Why?
                                     : funBody l f ys (map bindId xs) e    -- free variables, parameters
                                    ++ ILabel funEnd            -- Function end
                                     -- : lamTuple env l (length xs)   -- Compile fun-tuple into EAX
-                                    : funTupleWrite l f arity funStart env ys
+                                    : lamTupleWrite l arity funStart env ys
                                     where
                                       i = snd l
                                       ys    = freeVars (Fun f xs e l)
@@ -193,8 +193,9 @@ compileEnv env (App vE vXs l)      = assertType env vE TClosure
                                      ++ assertArity env vE (length vXs)
                                      ++ tupleReadRaw  (immArg env vE) (repr (1 :: Int))  -- load vE[1] into EAX
                                      ++ [IPush (param env vX) | vX <- reverse vXs]        -- push args
+                                     ++ [IPush (param env vE)]                            -- push in that closure pointer
                                      ++ [ICall (Reg EAX)]                                 -- call EAX
-                                     ++ [IAdd  (Reg ESP) (Const (4 * n))]                         -- pop  args
+                                     ++ [IAdd  (Reg ESP) (Const (4 * (n+1)))]                         -- pop  args
                                      where
                                        n = (length vXs)
 
@@ -215,7 +216,7 @@ lambdaBody l ys xs e = funInstrs maxStack
   where
     maxStack       = envMax env + countVars e  -- max stack size
     env            = fromListEnv bs
-    bs             = zip xs  [-2,-3..]         -- put params    into env/stack
+    bs             = zip xs  [-3,-4..]         -- put params    into env/stack
                   ++ zip ys  [1..]             -- put free-vars into env/stack
 
 
@@ -226,9 +227,17 @@ funBody l f ys xs e = funInstrs maxStack
   where
     maxStack       = envMax env + countVars e  -- max stack size
     env            = fromListEnv bs
-    bs             = zip xs  [-2,-3..]         -- put params    into env/stack
-                  ++ zip ((bindId f):ys)  [1..]             -- put free-vars into env/stack      --we also put the function id on the free variables stack
+    bs             =
+                  [((bindId f), -2)]
+                  ++ zip (xs)  [-3,-4..]         -- put params    into env/stack
+                  ++ zip ys  [1..]             -- put free-vars into env/stack      --we also put the function id on the free variables stack
+                  -- ++ [((bindId f), 2)]
 
+restoreFun f ys  = concat [ copy i | (y, i) <- zip ys [1..]]
+                      where
+                        closPtr = RegOffset 8 EBP
+                        copy i  = tupleReadRaw closPtr (repr (i+1))  -- copy tuple-fld for y into EAX...
+                               ++ [ IMov (stackVar i) (Reg EAX) ]    -- ...write EAX into stackVar for y
 
 
 restore ys  = concat [ copy i | (y, i) <- zip ys [1..]]
